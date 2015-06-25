@@ -2,6 +2,7 @@ package circonus
 
 import (
 //        "encoding/json"
+  "os"
   "fmt"
 //  "strings"
 //  "time"
@@ -10,10 +11,19 @@ import (
   "net/http"
 )
 
+const defaultAppName string = "curl"
+const defaultApiServer string = "api.circonus.com"
+
 type Circonus struct {
-  AppName string "curl"
-  ApiServer string "api.circonus.com"
-  ApiToken string ""
+  AppName string
+  ApiServer string
+  ApiToken string
+}
+
+var defaultCirconus = Circonus{
+  AppName: "",
+  ApiServer: "",
+  ApiToken: "",
 }
 
 // get_url takes a collection string, and returns a URL to query
@@ -21,6 +31,26 @@ func (c *Circonus) get_url(collection string) string {
   url := fmt.Sprintf("https://%s/v2/%s",c.ApiServer,collection)
   fmt.Println("URL:",url)
   return url
+}
+
+// NewCirconus initializes our Circonus struct
+func NewCirconus(c *Circonus) *Circonus {
+  if c == nil {
+    c = &defaultCirconus
+  }
+
+  appname := os.Getenv("CIRCONUS_APPNAME")
+  apitoken := os.Getenv("CIRCONUS_APITOKEN")
+  apiserver := os.Getenv("CIRCONUS_APISERVER")
+  if (c.AppName == "") && (appname != "") { c.AppName = appname }
+  if (c.ApiServer == "") && (apiserver != "") { c.ApiServer = apiserver }
+  if (c.ApiToken == "") && (apitoken != "") { c.ApiToken = apitoken }
+  if c.AppName == "" { c.AppName = defaultAppName }
+  if c.ApiServer == "" { c.ApiServer = defaultApiServer }
+  fmt.Println("apitoken:", c.ApiToken)
+  fmt.Println("apiserver:", c.ApiServer)
+  fmt.Println("appname:", c.AppName)
+  return c
 }
 
 // do_request takes:
